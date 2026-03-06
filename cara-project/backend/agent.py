@@ -10,7 +10,7 @@ import asyncio
 import random
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
-
+from config import OPENAI_API_KEY 
 from database import db
 
 

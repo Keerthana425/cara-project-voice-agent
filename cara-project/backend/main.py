@@ -13,7 +13,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 import random
 import string
-
+from config import OPENAI_API_KEY 
 from models import (
     PatientRegister, BookAppointmentRequest, CancelAppointmentRequest,
     RescheduleAppointmentRequest, OutboundCampaignRequest,
