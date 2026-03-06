@@ -4,7 +4,7 @@
  * Falls back to local simulation when backend is offline.
  */
 
-let BACKEND_URL = localStorage.getItem('cara_backend_url') || 'https://cara-backend-4gzy.onrender.com';
+let BACKEND_URL = localStorage.getItem('cara_backend_url') || 'https://cara-backend-avmf.onrender.com';
 let backendOnline = true;
 let wsConnection = null;
 let wsMessageHandler = null; // Set by app.js
