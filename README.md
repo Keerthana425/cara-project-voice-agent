@@ -31,10 +31,13 @@ cara-project/
 ```
 
 ---
+Here’s an updated **Quick Start + Frontend** section for your README, reflecting your local setup **and** deployment on Render:
+
+---
 
 ## 🚀 Quick Start
 
-### 1. Backend Setup
+### 1. Backend Setup (Local)
 
 ```bash
 cd backend
@@ -49,30 +52,46 @@ pip install -r requirements.txt
 # Copy and edit env (optional)
 cp .env.example .env
 
-# Start the server
-uvicorn main:app --reload --host 0.0.0.0 --port 8000
+# Start the server locally
+uvicorn main:app --host 0.0.0.0 --port 8000
 ```
 
-The API will be live at: **http://localhost:8000**
-Interactive docs at: **http://localhost:8000/docs**
+* API available at: **[http://127.0.0.1:8000](http://127.0.0.1:8000)**
+* Interactive docs: **[http://127.0.0.1:8000/docs#/](http://127.0.0.1:8000/docs#/)**
 
 ---
 
-### 2. Frontend Setup
+### 2. Backend Setup (Render Deployment)
+
+1. Push your repo to GitHub.
+2. Create a **Web Service** on Render.
+
+   * **Root Directory:** `backend`
+   * **Build Command:** `pip install -r requirements.txt`
+   * **Start Command:** `uvicorn main:app --host 0.0.0.0 --port 10000`
+3. Add `.env` variables via Render dashboard.
+4. Render will provide a **public URL**, e.g., `https://cara-backend.onrender.com/`.
+
+---
+
+### 3. Frontend Setup
 
 No build step required — pure HTML/CSS/JS.
 
 **Option A — Open directly:**
+
 ```bash
 open frontend/index.html
-# or double-click the file in your file manager
+# or double-click the file
 ```
 
 **Option B — Serve with Python (recommended, avoids CORS):**
+
 ```bash
 cd frontend
 python -m http.server 5500
 # Open http://localhost:5500
+# Update BACKEND_URL in api.js to local: http://127.0.0.1:8000 or Render URL
 ```
 
 **Option C — Live Server (VS Code):**
@@ -80,12 +99,15 @@ Right-click `index.html` → "Open with Live Server"
 
 ---
 
-### 3. Connect Frontend → Backend
+### 4. Connect Frontend → Backend
 
-1. Open the dashboard in Chrome or Edge
-2. Click **⚙️ Settings** (top right)
-3. Set Backend URL to `http://localhost:8000`
-4. Click **Test** — you should see ✅ Connected
+1. Open the dashboard in Chrome/Edge.
+2. Click **⚙️ Settings**.
+3. Set **Backend URL**:
+
+   * Local: `http://127.0.0.1:8000/`
+   * Deployed: `https://cara-backend.onrender.com/`
+4. Click **Test** — should show ✅ Connected
 5. Click **Save & Connect**
 
 ---
