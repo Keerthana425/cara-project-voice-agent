@@ -4,7 +4,7 @@
  * Falls back to local simulation when backend is offline.
  */
 
-let BACKEND_URL = localStorage.getItem('cara_backend_url') || 'https://127.0.0.1:80000';
+let BACKEND_URL = localStorage.getItem('cara_backend_url') || 'https://127.0.0.1:8000';
 let backendOnline = true;
 let wsConnection = null;
 let wsMessageHandler = null; // Set by app.js
