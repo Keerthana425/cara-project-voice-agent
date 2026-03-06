@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cara — Voice AI Healthcare Agent</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏥</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="src/styles.css">
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div class="app">
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="logo">
+      <div class="logo-icon">🏥</div>
+      <div>
+        <div class="logo-text">Cara</div>
+        <div class="logo-sub">Voice AI · Clinical Agent</div>
+      </div>
+    </div>
+    <div class="header-status">
+      <div class="status-pill">
+        <div class="status-dot" id="connectionDot"></div>
+        <span id="connectionLabel" style="font-size:12px">Connecting...</span>
+      </div>
+      <div class="latency-badge" id="headerLatency">— ms</div>
+      <select class="modal-select" id="patientSelect" onchange="switchPatient(this.value)" style="width:160px;padding:6px 10px;font-size:12px">
+        <option value="P001">Priya Singh (P001)</option>
+        <option value="P002">Rajan Kumar (P002)</option>
+        <option value="P003">Meena Iyer (P003)</option>
+      </select>
+      <button class="modal-btn primary" onclick="openBookModal()" style="padding:6px 14px;font-size:12px;border-radius:8px;width:auto">+ Book</button>
+      <button onclick="openSettingsModal()" class="icon-btn" title="Settings">⚙️</button>
+    </div>
+  </header>
+
+  <!-- ── Left Panel: Patient + Appointments ── -->
+  <aside class="panel-left">
+    <div>
+      <div class="section-label">Patient Profile</div>
+      <div class="patient-card">
+        <div class="patient-avatar" id="patientAvatar">👤</div>
+        <div class="patient-name" id="patientName">Priya Singh</div>
+        <div class="patient-id" id="patientId">ID: P001</div>
+        <div class="patient-meta">
+          <div class="meta-row"><span class="meta-key">Language</span><span class="meta-val"><span class="lang-badge" id="patientLang">English</span></span></div>
+          <div class="meta-row"><span class="meta-key">Last Doctor</span><span class="meta-val" id="lastDoctor">Dr. Priya Sharma</span></div>
+          <div class="meta-row"><span class="meta-key">Hospital</span><span class="meta-val" id="preferredHospital">Apollo</span></div>
+          <div class="meta-row"><span class="meta-key">Sessions</span><span class="meta-val" id="sessionCount">3</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="section-label" style="display:flex;justify-content:space-between;align-items:center">
+        Appointments
+        <span class="refresh-btn" onclick="refreshAppointments()">↻ Refresh</span>
+      </div>
+      <div class="appt-list" id="appointmentList"></div>
+    </div>
+
+    <button class="campaign-btn" onclick="triggerCampaign()">📞 Send Outbound Reminder</button>
+  </aside>
+
+  <!-- ── Center: Voice Chat ── -->
+  <main class="panel-center">
+    <div class="messages-container" id="messagesContainer">
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🎙️</div>
+        <div class="empty-title">Talk to Cara</div>
+        <div class="empty-sub">Press the microphone or type below to manage appointments in English, हिंदी, or தமிழ்.</div>
+      </div>
+    </div>
+
+    <div class="typing-indicator hidden" id="typingIndicator">
+      <div class="msg-avatar agent" style="width:28px;height:28px;font-size:12px">🤖</div>
+      <div class="typing-dots">
+        <div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted)">Cara is thinking...</span>
+    </div>
+
+    <div class="voice-input-area">
+      <div class="waveform-container" id="waveformContainer">
+        <div id="waveformBars"></div>
+        <span class="transcript-preview" id="transcriptPreview"></span>
+      </div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px;display:flex;align-items:center;gap:6px">
+        <span id="sttModeLabel">🎙 Detecting speech engine...</span>
+        <span class="link-btn" onclick="openSettingsModal()">Configure ›</span>
+      </div>
+      <div class="input-controls">
+        <button class="mic-btn" id="micBtn" onclick="toggleRecording()" title="Click to speak (Space)">
+          <span class="mic-icon" id="micIcon">🎙️</span>
+        </button>
+        <div class="text-input-wrap">
+          <textarea class="text-input" id="textInput"
+            placeholder="Type or speak... e.g. 'Book appointment with cardiologist tomorrow'"
+            onkeydown="handleTextKey(event)"></textarea>
+          <button class="send-btn" onclick="sendTextMessage()">➤</button>
+        </div>
+      </div>
+      <div class="lang-selector-row">
+        <span style="font-size:11px;color:var(--muted)">Language:</span>
+        <button class="lang-btn active" id="lang-en" onclick="setLanguage('en')">🇬🇧 English</button>
+        <button class="lang-btn" id="lang-hi" onclick="setLanguage('hi')">🇮🇳 हिंदी</button>
+        <button class="lang-btn" id="lang-ta" onclick="setLanguage('ta')">🇮🇳 தமிழ்</button>
+      </div>
+      <div class="quick-actions">
+        <button class="quick-btn" onclick="quickSend('Book appointment with cardiologist tomorrow')">📅 Book Tomorrow</button>
+        <button class="quick-btn" onclick="quickSend('Cancel my next appointment')">❌ Cancel</button>
+        <button class="quick-btn" onclick="quickSend('Reschedule my appointment to Friday 2 PM')">🔄 Reschedule</button>
+        <button class="quick-btn" onclick="quickSend('Show my upcoming appointments')">📋 My Appointments</button>
+        <button class="quick-btn" onclick="quickSend('Check availability for dermatologist next Monday')">🔍 Check Slots</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Right Panel: Metrics ── -->
+  <aside class="panel-right">
+    <div class="right-section">
+      <div class="section-label">Pipeline Latency</div>
+      <div class="latency-meter">
+        <div class="latency-row">
+          <div class="latency-header"><span class="latency-name">🎙 Speech-to-Text</span><span class="latency-val" id="sttMs">— ms</span></div>
+          <div class="latency-bar-track"><div class="latency-bar-fill" id="sttBar"></div></div>
+        </div>
+        <div class="latency-row">
+          <div class="latency-header"><span class="latency-name">🌐 Language Detect</span><span class="latency-val" id="langMs">— ms</span></div>
+          <div class="latency-bar-track"><div class="latency-bar-fill" id="langBar" style="background:linear-gradient(to right,#7c3aed,#a78bfa)"></div></div>
+        </div>
+        <div class="latency-row">
+          <div class="latency-header"><span class="latency-name">🤖 LLM Agent</span><span class="latency-val" id="agentMs">— ms</span></div>
+          <div class="latency-bar-track"><div class="latency-bar-fill" id="agentBar" style="background:linear-gradient(to right,#7c3aed,#c4b5fd)"></div></div>
+        </div>
+        <div class="latency-row">
+          <div class="latency-header"><span class="latency-name">🔊 Text-to-Speech</span><span class="latency-val" id="ttsMs">— ms</span></div>
+          <div class="latency-bar-track"><div class="latency-bar-fill" id="ttsBar" style="background:linear-gradient(to right,#059669,#34d399)"></div></div>
+        </div>
+        <div class="latency-total">
+          <span class="latency-total-label">Total</span>
+          <span class="latency-total-val" id="totalMs">—</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <div class="section-label">Tool Calls</div>
+      <div class="tool-log" id="toolLog">
+        <div style="font-size:11px;color:var(--muted);text-align:center;padding:8px">No tool calls yet</div>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <div class="section-label">Session Context</div>
+      <div class="session-info">
+        <div class="sess-row"><span class="sess-key">Session ID</span><span class="sess-val" id="sessId">—</span></div>
+        <div class="sess-row"><span class="sess-key">Intent</span><span class="sess-val" id="sessIntent">—</span></div>
+        <div class="sess-row"><span class="sess-key">Language</span><span class="sess-val" id="sessLang">en</span></div>
+        <div class="sess-row"><span class="sess-key">Turns</span><span class="sess-val" id="sessTurns">0</span></div>
+        <div class="sess-row"><span class="sess-key">WS Status</span><span class="sess-val" id="wsStatus" style="color:var(--amber)">Connecting...</span></div>
+      </div>
+    </div>
+
+    <div class="right-section">
+      <div class="section-label">Avg Latency (last 10)</div>
+      <div id="avgStats" style="font-size:11px;color:var(--muted);text-align:center;padding:4px">No data yet</div>
+    </div>
+
+    <div class="right-section">
+      <div class="section-label">Backend Endpoints</div>
+      <div style="display:flex;flex-direction:column;gap:5px">
+        <div class="sess-row"><span class="sess-key" style="font-size:10px">POST /api/appointments/book</span><span id="ep1" style="font-size:9px;color:var(--muted)">—</span></div>
+        <div class="sess-row"><span class="sess-key" style="font-size:10px">POST /api/appointments/cancel</span><span id="ep2" style="font-size:9px;color:var(--muted)">—</span></div>
+        <div class="sess-row"><span class="sess-key" style="font-size:10px">POST /api/appointments/reschedule</span><span id="ep3" style="font-size:9px;color:var(--muted)">—</span></div>
+        <div class="sess-row"><span class="sess-key" style="font-size:10px">GET  /api/appointments/availability</span><span id="ep4" style="font-size:9px;color:var(--muted)">—</span></div>
+        <div class="sess-row"><span class="sess-key" style="font-size:10px">WS   /ws/voice/{patient_id}</span><span id="ep5" style="font-size:9px;color:var(--muted)">—</span></div>
+      </div>
+      <button class="ping-btn" onclick="pingEndpoints()">🔄 Ping All</button>
+    </div>
+  </aside>
+</div>
+
+<!-- Book Appointment Modal -->
+<div class="modal-overlay hidden" id="bookModal">
+  <div class="modal">
+    <div class="modal-title">📅 Book Appointment</div>
+    <div class="modal-field">
+      <div class="modal-label">Doctor Specialty</div>
+      <select class="modal-select" id="bookSpecialty">
+        <option value="cardiologist">Cardiologist — Dr. Priya Sharma (Apollo)</option>
+        <option value="dermatologist">Dermatologist — Dr. Rajan Kumar (Fortis)</option>
+        <option value="general physician">General Physician — Dr. Meena Iyer (Apollo)</option>
+        <option value="orthopedist">Orthopedist — Dr. Arjun Patel (Max)</option>
+        <option value="neurologist">Neurologist — Dr. Sunita Rao (AIIMS)</option>
+      </select>
+    </div>
+    <div class="modal-field"><div class="modal-label">Date</div><input class="modal-input" type="date" id="bookDate"></div>
+    <div class="modal-field">
+      <div class="modal-label">Time Slot</div>
+      <select class="modal-select" id="bookTime">
+        <option>09:00 AM</option><option>10:30 AM</option><option>12:00 PM</option><option>02:00 PM</option><option>04:00 PM</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeBookModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="bookFromModal()">Confirm Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay hidden" id="settingsModal">
+  <div class="modal">
+    <div class="modal-title">⚙️ Settings</div>
+    <div id="backendStatusBox" style="border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.7;border:1px solid var(--border)">
+      <strong>🖥 Backend Status:</strong> <span id="backendStatusText">Checking...</span>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">Backend URL</div>
+      <div style="display:flex;gap:8px">
+        <input class="modal-input" type="text" id="backendUrlInput" placeholder="http://localhost:8000" style="flex:1">
+        <button class="modal-btn primary" onclick="testBackendConnection()" style="width:auto;padding:8px 14px;white-space:nowrap">Test</button>
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px">Run <code style="background:rgba(255,255,255,0.05);padding:1px 4px;border-radius:3px">uvicorn main:app --reload</code> in the backend folder</div>
+    </div>
+    <div style="border-top:1px solid var(--border);margin:14px 0"></div>
+    <div style="background:rgba(0,201,255,0.07);border:1px solid rgba(0,201,255,0.2);border-radius:10px;padding:12px 14px;margin-bottom:14px;font-size:12px;line-height:1.7;color:#9ca3af">
+      <strong style="color:var(--accent)">🎙 Speech Recognition Mode</strong><br>
+      <span id="sttModeDesc">Detecting...</span>
+    </div>
+    <div class="modal-field">
+      <div class="modal-label">OpenAI API Key <span style="color:var(--muted)">(optional — Whisper STT)</span></div>
+      <input class="modal-input" type="password" id="apiKeyInput" placeholder="sk-..." autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="modal-btn secondary" onclick="closeSettingsModal()">Cancel</button>
+      <button class="modal-btn primary" onclick="saveSettings()">Save & Connect</button>
+    </div>
+  </div>
+</div>
+
+<script src="src/api.js"></script>
+<script src="src/speech.js"></script>
+<script src="src/ui.js"></script>
+<script src="src/app.js"></script>
+</body>
+</html>
