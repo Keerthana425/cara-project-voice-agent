@@ -30,11 +30,6 @@ cara-project/
 └── README.md
 ```
 
----
-Here’s an updated **Quick Start + Frontend** section for your README, reflecting your local setup **and** deployment on Render:
-
----
-
 ## 🚀 Quick Start
 
 ### 1. Backend Setup (Local)
